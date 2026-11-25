@@ -1,0 +1,29 @@
+name: shark41
+on:
+  schedule:
+    - cron: "0 * * * *"      # hourly; each run stays alive ~55 min
+  workflow_dispatch:
+concurrency:
+  group: shark41
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 58
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install pillow
+      - name: Run bot
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          RUN_SECONDS: "3200"
+        run: python shark41_bot.py
+      - name: Save state
+        if: always()
+        run: |
+          git config user.name shark41; git config user.email bot@users.noreply.github.com
+          git add shark41.db && git commit -m "state" && git push || true
