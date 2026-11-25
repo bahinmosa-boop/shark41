@@ -7,104 +7,176 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SHARK41">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0a1330">
+<meta name="theme-color" content="#060b1f">
 <title>SHARK41</title>
 <link rel="apple-touch-icon" id="touchicon" href="">
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{--navy:#0a1330;--navy2:#111d45;--gold:#e6b94a;--gold2:#f5d77e;--g:#19c37d;--r:#f0455a;--mut:#8f9bbd}
-html,body{margin:0;background:var(--navy);color:#fff;font-family:-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;min-height:100%}
-body{padding:env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom));max-width:520px;margin:0 auto}
-header{text-align:center;padding:22px 0 8px}
-.logo{font-size:34px;font-weight:900;letter-spacing:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent}
-.logo span{font-size:30px}
-.sub{color:var(--mut);font-size:13px;margin-top:2px}
-.demo{margin:12px 0;padding:8px 12px;border:1px solid var(--gold);border-radius:12px;color:var(--gold2);background:rgba(230,185,74,.08);text-align:center;font-size:13px;font-weight:700}
-.card{background:var(--navy2);border:1px solid rgba(230,185,74,.25);border-radius:20px;padding:18px;margin:14px 0}
-.btn{display:block;width:100%;border:0;border-radius:16px;padding:18px;font-size:19px;font-weight:800;color:#1a1300;background:linear-gradient(90deg,var(--gold),var(--gold2));cursor:pointer}
-.btn:active{transform:scale(.98)}
+:root{--bg:#060b1f;--navy:#0b1535;--navy2:#101d47;--gold:#e6b94a;--gold2:#f7dd8c;--g:#1fd58a;--r:#ff4d66;--mut:#8a97bd;--line:rgba(230,185,74,.22)}
+html{background:var(--bg)}
+body{margin:0;min-height:100vh;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Arabic","Segoe UI",Tahoma,"Noto Sans Arabic",Arial,sans-serif;
+ background:radial-gradient(900px 500px at 50% -10%,rgba(230,185,74,.16),transparent 60%),radial-gradient(700px 500px at 100% 40%,rgba(40,70,200,.18),transparent 60%),var(--bg);
+ padding:calc(env(safe-area-inset-top) + 8px) 16px calc(40px + env(safe-area-inset-bottom));max-width:520px;margin:0 auto;overflow-x:hidden}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:embed}
+/* header */
+header{display:flex;align-items:center;justify-content:center;gap:12px;padding:18px 0 6px}
+.mark{width:46px;height:46px;border-radius:14px;background:linear-gradient(145deg,#16255a,#0a1230);border:1px solid var(--line);display:grid;place-items:center;box-shadow:0 0 24px rgba(230,185,74,.18)}
+.word{font-size:30px;font-weight:900;letter-spacing:3px;direction:ltr;line-height:1}
+.word b{background:linear-gradient(180deg,var(--gold2),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+.tag{text-align:center;color:var(--mut);font-size:13px;margin:2px 0 14px}
+.pill{display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(230,185,74,.07);color:var(--gold2);font-size:12.5px;font-weight:700;margin:0 auto 16px;width:max-content;max-width:100%}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold);animation:pulse 2s infinite}
+@keyframes pulse{50%{opacity:.35}}
+/* cards */
+.card{position:relative;background:linear-gradient(160deg,rgba(20,34,80,.85),rgba(11,21,53,.92));border:1px solid var(--line);border-radius:24px;padding:20px;margin:14px 0;box-shadow:0 18px 40px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05)}
+.up{animation:rise .45s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+/* upload */
+.drop{display:block;width:100%;border:1.5px dashed rgba(230,185,74,.5);border-radius:20px;padding:26px 16px;text-align:center;background:rgba(230,185,74,.04);color:#fff;font:inherit;cursor:pointer}
+.drop:active{transform:scale(.985)}
+.drop .ic{width:64px;height:64px;margin:0 auto 10px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,var(--gold2),var(--gold));box-shadow:0 8px 28px rgba(230,185,74,.35)}
+.drop strong{display:block;font-size:19px;font-weight:800}
+.drop span{display:block;color:var(--mut);font-size:13px;margin-top:4px}
 input[type=file]{display:none}
-#preview{width:100%;max-height:230px;object-fit:contain;border-radius:12px;margin-top:12px;display:none;background:#000}
-.result{text-align:center;display:none}
-.result .big{font-size:30px;font-weight:900;margin:6px 0}
-.result.ok{border-color:var(--g);box-shadow:0 0 28px rgba(25,195,125,.25)}
-.result.ok .big{color:var(--g)}
-.result.no{border-color:#56608a}
-.result.no .big{color:#c9d1ee}
-.result.err{border-color:var(--r)}
-.result.err .big{color:var(--r);font-size:22px}
-.dots{display:flex;justify-content:center;gap:10px;margin:12px 0;direction:ltr}
-.dot{width:34px;height:34px;border-radius:50%}
-.dot.G{background:var(--g)}.dot.R{background:var(--r)}
-.small{font-size:13px;color:var(--mut);line-height:1.6}
-.row{display:flex;gap:12px;margin-top:14px}
-.wl{flex:1;border:0;border-radius:14px;padding:16px;font-size:18px;font-weight:800;color:#fff;cursor:pointer}
-.win{background:var(--g)}.loss{background:var(--r)}
-.stat{display:flex;justify-content:space-around;text-align:center}
-.stat b{display:block;font-size:28px;color:var(--gold2)}
-.bar{height:10px;border-radius:6px;background:#1c2a5c;margin-top:14px;overflow:hidden}
-.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));width:0}
-ul{list-style:none;padding:0;margin:8px 0 0}
-li{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1c2a5c;font-size:14px}
-.W{color:var(--g)}.L{color:var(--r)}.P{color:var(--mut)}
-details{margin-top:8px}summary{color:var(--gold);cursor:pointer;font-size:14px}
-input[type=text]{width:100%;padding:12px;border-radius:10px;border:1px solid #2a3a73;background:var(--navy);color:#fff;font-size:18px;letter-spacing:4px;text-align:center;direction:ltr;margin-top:8px}
-.link{background:none;border:0;color:var(--mut);text-decoration:underline;font-size:13px;cursor:pointer;margin-top:10px}
+.shot{position:relative;margin-top:14px;border-radius:16px;overflow:hidden;display:none;border:1px solid var(--line);background:#000}
+.shot img{display:block;width:100%;max-height:220px;object-fit:contain}
+.scan{position:absolute;inset:0;background:linear-gradient(180deg,transparent 0,rgba(230,185,74,.35) 50%,transparent 100%);height:40%;animation:scan 1s linear infinite;display:none}
+@keyframes scan{from{transform:translateY(-100%)}to{transform:translateY(300%)}}
+.tip{margin-top:14px;display:flex;gap:10px;align-items:flex-start;color:var(--mut);font-size:12.5px;line-height:1.7}
+.tip svg{flex:none;margin-top:3px}
+/* result */
+.res{display:none;text-align:center;overflow:hidden}
+.res .lab{font-size:12px;letter-spacing:2px;font-weight:800;color:var(--mut);direction:ltr}
+.res .verdict{font-size:54px;font-weight:900;letter-spacing:2px;line-height:1.05;margin:10px 0 2px;direction:ltr}
+.res .sub{font-size:16px;font-weight:700;margin-bottom:6px}
+.res.ok{border-color:rgba(31,213,138,.6);background:linear-gradient(160deg,rgba(14,60,58,.75),rgba(11,21,53,.95));box-shadow:0 0 0 1px rgba(31,213,138,.25),0 0 60px rgba(31,213,138,.28),0 18px 40px rgba(0,0,0,.5);animation:glow 2.4s ease-in-out infinite,rise .45s both}
+@keyframes glow{50%{box-shadow:0 0 0 1px rgba(31,213,138,.35),0 0 90px rgba(31,213,138,.42),0 18px 40px rgba(0,0,0,.5)}}
+.res.ok .verdict{color:var(--g);text-shadow:0 0 28px rgba(31,213,138,.55)}
+.res.no .verdict{color:#c7d0ee;font-size:40px}
+.res.err{border-color:rgba(255,77,102,.5)}
+.res.err .verdict{color:var(--r);font-size:26px;direction:rtl;letter-spacing:0}
+.arrow{width:78px;height:78px;margin:6px auto 0;border-radius:50%;display:grid;place-items:center;background:rgba(31,213,138,.14);border:1px solid rgba(31,213,138,.5)}
+.arrow.no{background:rgba(160,175,220,.08);border-color:rgba(160,175,220,.3)}
+.arrow.err{background:rgba(255,77,102,.1);border-color:rgba(255,77,102,.5)}
+.candles{display:flex;justify-content:center;align-items:center;gap:11px;margin:18px 0 6px;direction:ltr;height:64px}
+.cd{width:16px;position:relative}
+.cd:before{content:"";position:absolute;left:50%;top:-6px;bottom:-6px;width:2px;transform:translateX(-50%);background:currentColor;opacity:.8}
+.cd i{position:absolute;left:0;right:0;border-radius:3px;background:currentColor;box-shadow:0 0 12px currentColor}
+.cd.G{color:var(--g)}.cd.R{color:var(--r)}
+.cd.last:after{content:"";position:absolute;left:50%;bottom:-14px;width:5px;height:5px;border-radius:50%;background:var(--gold);transform:translateX(-50%)}
+.next{width:16px;height:44px;border:1.5px dashed var(--gold);border-radius:4px;opacity:.9;display:none}
+.read{font-size:13px;color:var(--mut);line-height:1.8}
+.dm{margin:14px 0 0;padding:9px 12px;border-radius:12px;background:rgba(230,185,74,.09);border:1px solid var(--line);color:var(--gold2);font-size:12px;font-weight:800;letter-spacing:.4px;direction:ltr;display:none}
+.askrow{margin-top:16px;font-size:14px;font-weight:700}
+.row{display:flex;gap:12px;margin-top:10px}
+.wl{flex:1;border:0;border-radius:16px;padding:17px 8px;font:inherit;font-size:18px;font-weight:900;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.wl:active{transform:scale(.97)}
+.win{background:linear-gradient(160deg,#25e39a,#12a869);box-shadow:0 8px 24px rgba(31,213,138,.3)}
+.loss{background:linear-gradient(160deg,#ff6a80,#d6314b);box-shadow:0 8px 24px rgba(255,77,102,.28)}
+/* stats */
+.stats{display:flex;align-items:center;gap:18px}
+.ring{position:relative;width:118px;height:118px;flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring .c{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.ring b{display:block;font-size:26px;font-weight:900;color:var(--gold2)}
+.ring small{display:block;font-size:10.5px;color:var(--mut);margin-top:-2px}
+.kv{flex:1}
+.kv .t{font-size:12px;color:var(--mut)}
+.kv .v{font-size:22px;font-weight:900;margin-bottom:8px}
+.kv .v em{font-style:normal;color:var(--mut);font-size:14px;font-weight:600}
+.segs{display:grid;grid-template-columns:repeat(25,1fr);gap:3px;margin-top:16px;direction:ltr}
+.segs i{height:8px;border-radius:3px;background:#1a2756}
+.segs i.on{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.verdictline{margin-top:12px;font-size:12.5px;color:var(--mut);line-height:1.7}
+h3{margin:0 0 6px;font-size:15px;color:var(--gold2)}
+ul{list-style:none;padding:0;margin:0}
+li{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px}
+li:last-child{border:0}
+.mini{display:flex;gap:4px;direction:ltr}.mini i{width:9px;height:9px;border-radius:50%}.mini .G{background:var(--g)}.mini .R{background:var(--r)}
+.badge{padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800}
+.badge.W{background:rgba(31,213,138,.14);color:var(--g)}.badge.L{background:rgba(255,77,102,.14);color:var(--r)}.badge.P{background:rgba(255,255,255,.08);color:var(--mut)}
+.empty{color:var(--mut);font-size:13px;padding:8px 0}
+details summary{cursor:pointer;color:var(--gold);font-size:14px;font-weight:700;list-style:none}
+details summary::-webkit-details-marker{display:none}
+input[type=text]{width:100%;padding:13px;border-radius:12px;border:1px solid rgba(230,185,74,.3);background:var(--bg);color:#fff;font-size:20px;letter-spacing:6px;text-align:center;direction:ltr;margin-top:10px;font-family:inherit}
+.link{background:none;border:0;color:var(--mut);text-decoration:underline;font:inherit;font-size:12.5px;cursor:pointer;margin-top:12px;padding:0}
+.foot{text-align:center;color:#5d6a95;font-size:11.5px;line-height:1.8;margin-top:18px}
 </style>
 </head>
 <body>
-<header>
-  <div class="logo">🦈 SHARK<span>41</span></div>
-  <div class="sub">اختبار استراتيجية الشموع على الديمو</div>
+
+<header class="up">
+  <div class="mark"><svg width="30" height="30" viewBox="0 0 32 32" fill="none"><path d="M4 24c4-1 7-5 9-11 1 3 3 5 5 6 1-4 3-7 6-9-1 5-1 9 1 14-4-2-8-2-12 2-3-1-6-2-9-2z" fill="url(#g1)"/><defs><linearGradient id="g1" x1="4" y1="6" x2="28" y2="28"><stop stop-color="#f7dd8c"/><stop offset="1" stop-color="#e6b94a"/></linearGradient></defs></svg></div>
+  <div class="word">SHARK<b>41</b></div>
 </header>
+<div class="tag">فاحص نمط الشموع — اختبار على الديمو</div>
+<div class="pill up"><i></i> ديمو فقط · غير مثبت لحد ٥٠ صفقة مسجّلة</div>
 
-<div class="demo">⚠️ ديمو فقط — غير مثبت لحد ٥٠ صفقة مسجّلة</div>
-
-<div class="card">
-  <button class="btn" id="pick">📷 اختار سكرين شوت الشارت</button>
+<section class="card up">
+  <button class="drop" id="pick">
+    <div class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a1300" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></div>
+    <strong>ارفع سكرين شوت الشارت</strong>
+    <span>اختار الصورة من المعرض</span>
+  </button>
   <input type="file" id="file" accept="image/*">
-  <img id="preview" alt="">
-  <div class="small" style="margin-top:12px">صوّر الشارت <b>بعد ما الشمعة الخامسة تقفل</b> — آخر ٥ شموع لازم يبانوا كاملين على اليمين، من غير قص أو تكبير.</div>
-</div>
+  <div class="shot" id="shot"><img id="preview" alt=""><div class="scan" id="scan"></div></div>
+  <div class="tip"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e6b94a" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+  <div>صوّر الشارت <b>بعد ما الشمعة الخامسة تقفل</b>. لازم آخر ٥ شموع يبانوا كاملين على اليمين، من غير قص ولا تكبير.</div></div>
+</section>
 
-<div class="card result" id="res">
-  <div class="big" id="rtitle"></div>
-  <div class="dots" id="dots"></div>
-  <div id="rtext" class="small"></div>
-  <div class="demo" id="rdemo" style="display:none">DEMO ONLY — unverified until 50 logged trades</div>
-  <div class="row" id="wlrow" style="display:none">
-    <button class="wl win" id="bwin">✅ كسبت</button>
-    <button class="wl loss" id="bloss">❌ خسرت</button>
+<section class="card res" id="res">
+  <div class="lab" id="rlab"></div>
+  <div id="ricon"></div>
+  <div class="verdict" id="rverdict"></div>
+  <div class="sub" id="rsub"></div>
+  <div class="candles" id="candles"></div>
+  <div class="read" id="rread"></div>
+  <div class="dm" id="rdemo">DEMO ONLY — unverified until 50 logged trades</div>
+  <div id="wlbox" style="display:none">
+    <div class="askrow">لما الشمعة تقفل، سجّل النتيجة</div>
+    <div class="row">
+      <button class="wl win" id="bwin">✓ كسبت</button>
+      <button class="wl loss" id="bloss">✕ خسرت</button>
+    </div>
   </div>
-</div>
+</section>
 
-<div class="card">
-  <div class="stat">
-    <div><b id="wr">—</b><span class="small">نسبة النجاح الحقيقية</span></div>
-    <div><b id="n">0/50</b><span class="small">صفقات مسجّلة</span></div>
+<section class="card up">
+  <div class="stats">
+    <div class="ring">
+      <svg width="118" height="118" viewBox="0 0 118 118"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f7dd8c"/><stop offset="1" stop-color="#e6b94a"/></linearGradient></defs>
+        <circle cx="59" cy="59" r="50" fill="none" stroke="#1a2756" stroke-width="10"/>
+        <circle id="arc" cx="59" cy="59" r="50" fill="none" stroke="url(#rg)" stroke-width="10" stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="314.16" style="transition:stroke-dashoffset .8s"/></svg>
+      <div class="c"><div><b class="num" id="wr">—</b><small>نسبة النجاح</small></div></div>
+    </div>
+    <div class="kv">
+      <div class="t">صفقات مسجّلة</div><div class="v num"><span id="n">0</span> <em>/ 50</em></div>
+      <div class="t">كسب · خسارة</div><div class="v num"><span id="wl">0 · 0</span></div>
+    </div>
   </div>
-  <div class="bar"><i id="barfill"></i></div>
-  <div class="small" id="verdict" style="margin-top:10px"></div>
-</div>
+  <div class="segs" id="segs"></div>
+  <div class="verdictline" id="verdict"></div>
+</section>
 
-<div class="card">
-  <b style="color:var(--gold2)">آخر الإشارات</b>
+<section class="card up">
+  <h3>آخر الإشارات</h3>
   <ul id="list"></ul>
-  <details>
-    <summary>إعدادات</summary>
-    <div class="small" style="margin-top:8px">النمط (G = أخضر، R = أحمر، من الأقدم للأحدث). بعده الدخول CALL/UP على الشمعة الجاية.</div>
+  <details style="margin-top:12px">
+    <summary>⚙︎ إعدادات</summary>
+    <div class="read" style="margin-top:10px">النمط من الأقدم للأحدث (G = أخضر، R = أحمر). بعده الدخول CALL على الشمعة الجاية.</div>
     <input type="text" id="pat" maxlength="8" value="GGRGR">
     <button class="link" id="reset">مسح كل السجل</button>
   </details>
-</div>
-<div class="small" style="text-align:center">كل حاجة بتتحسب على موبايلك. مفيش صور بتتبعت لأي مكان. نتيجة كل صفقة بتسجلها انت بإيدك.</div>
+</section>
+
+<div class="foot">كل حاجة بتتحسب على موبايلك، ومفيش صور بتتبعت لأي مكان.<br>أداة اختبار فقط، مش نصيحة تداول. النتيجة بتسجّلها انت بإيدك.</div>
 
 <script>
 "use strict";
-// ---- icon for Add to Home Screen (drawn at load) ----
 (function(){var c=document.createElement('canvas');c.width=c.height=180;var x=c.getContext('2d');
- x.fillStyle='#0a1330';x.fillRect(0,0,180,180);x.fillStyle='#e6b94a';x.font='bold 64px sans-serif';x.textAlign='center';x.fillText('S41',90,112);
- x.strokeStyle='#e6b94a';x.lineWidth=6;x.strokeRect(10,10,160,160);document.getElementById('touchicon').href=c.toDataURL('image/png');})();
+ var gr=x.createLinearGradient(0,0,180,180);gr.addColorStop(0,'#16255a');gr.addColorStop(1,'#060b1f');x.fillStyle=gr;x.fillRect(0,0,180,180);
+ x.strokeStyle='#e6b94a';x.lineWidth=5;x.strokeRect(9,9,162,162);x.fillStyle='#f0c85a';x.font='900 66px -apple-system,Arial,sans-serif';x.textAlign='center';x.fillText('S41',90,112);
+ document.getElementById('touchicon').href=c.toDataURL('image/png');})();
 
 // ---- chart reader: port of chart_reader.py ----
 function classify(r,g,b){
@@ -141,83 +213,101 @@ function readCandles(img,want){
   return{ok:true,colors:last.map(function(t){return t.c}),note:'ok'};
 }
 
+
 // ---- storage ----
 var KEY='shark41_v1';
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{log:[],pat:'GGRGR'}}catch(e){return{log:[],pat:'GGRGR'}}}
-function save(s){localStorage.setItem(KEY,JSON.stringify(s))}
+function save(s){try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
 var S=load();
-var current=null; // id of signal awaiting WIN/LOSS
-
+var current=null;
 function $(id){return document.getElementById(id)}
 function pat(){var p=(S.pat||'GGRGR').toUpperCase().replace(/[^GR]/g,'');return p.length>=2?p:'GGRGR'}
+var AR=function(n){return String(n).replace(/\d/g,function(d){return '٠١٢٣٤٥٦٧٨٩'[d]})};
 
+function candleEl(c,idx,last){
+  var d=document.createElement('div');d.className='cd '+c+(last?' last':'');
+  var hs={G:[40,22,34,46,28],R:[30,44,24,38,50]};var h=(c==='G'?[34,26,42,30,38]:[28,40,24,36,32])[idx%5];
+  d.style.height='56px';var b=document.createElement('i');b.style.height=h+'px';b.style.top=((56-h)/2)+'px';d.appendChild(b);return d;
+}
 function render(){
   var w=0,l=0;S.log.forEach(function(e){if(e.o==='W')w++;else if(e.o==='L')l++});
-  var n=w+l;
-  $('wr').textContent=n?(Math.round(1000*w/n)/10)+'%':'—';
-  $('n').textContent=n+'/50';
-  $('barfill').style.width=Math.min(100,n*2)+'%';
-  $('verdict').textContent=n<50?'لسه '+(50-n)+' صفقة لحد ما الرقم يتعتبر حقيقي. قبل كده ده مجرد حظ أو لا.':
-    (w/n>=0.65?'عدّيت ٥٠ صفقة وفوق ٦٥٪. الرقم ده مبدئي، كمّل ديمو وراجعه قبل أي فلوس حقيقية.':'عدّيت ٥٠ صفقة وتحت ٦٥٪. الأرقام قالت كلمتها.');
+  var n=w+l,pc=n?w/n:0;
+  $('wr').textContent=n?(Math.round(pc*1000)/10)+'%':'—';
+  $('arc').style.strokeDashoffset=(314.16*(1-pc)).toFixed(1);
+  $('n').textContent=n;$('wl').textContent=w+' · '+l;
+  var sg=$('segs');if(!sg.children.length)for(var i=0;i<50;i++)sg.appendChild(document.createElement('i'));
+  for(i=0;i<50;i++)sg.children[i].className=i<n?'on':'';
+  sg.style.gridTemplateColumns='repeat(25,1fr)';
+  $('verdict').textContent=n<50?'فاضل '+AR(50-n)+' صفقة لحد ما الرقم يبقى ليه معنى. قبل كده ده مجرد انطباع.':
+    (pc>=0.65?'عدّيت ٥٠ صفقة وفوق ٦٥٪. الرقم مبدئي، كمّل ديمو وراجعه قبل أي فلوس حقيقية.':'عدّيت ٥٠ صفقة وتحت ٦٥٪. الأرقام قالت كلمتها.');
   $('pat').value=pat();
   var ul=$('list');ul.innerHTML='';
-  S.log.slice(-10).reverse().forEach(function(e){
+  var items=S.log.slice(-8).reverse();
+  items.forEach(function(e){
     var li=document.createElement('li');
     var d=new Date(e.t);var ds=d.toLocaleString('ar-EG',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'numeric'});
-    li.innerHTML='<span>'+ds+' · '+e.r.split('').map(function(c){return c==='G'?'🟢':'🔴'}).join('')+'</span><span class="'+(e.o||'P')+'">'+(e.o==='W'?'كسب':e.o==='L'?'خسر':'مستني')+'</span>';
+    var mini='<span class="mini">'+e.r.split('').map(function(c){return '<i class="'+c+'"></i>'}).join('')+'</span>';
+    li.innerHTML='<span style="display:flex;gap:10px;align-items:center">'+mini+'<span style="color:#8a97bd">'+ds+'</span></span><span class="badge '+(e.o||'P')+'">'+(e.o==='W'?'كسب':e.o==='L'?'خسر':'مستني')+'</span>';
     ul.appendChild(li);
   });
-  if(!S.log.length)ul.innerHTML='<li><span class="small">لسه مفيش إشارات</span></li>';
+  if(!items.length)ul.innerHTML='<div class="empty">لسه مفيش إشارات. ارفع أول شارت.</div>';
 }
 
-function show(kind,title,reading,text,withButtons){
-  var res=$('res');res.className='card result '+kind;res.style.display='block';
-  $('rtitle').textContent=title;
-  var dots=$('dots');dots.innerHTML='';
-  (reading||[]).forEach(function(c){var d=document.createElement('div');d.className='dot '+c;dots.appendChild(d)});
-  $('rtext').innerHTML=text;
+var ICON={
+ up:'<div class="arrow"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1fd58a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div>',
+ no:'<div class="arrow no"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#a0afdc" stroke-width="2.4" stroke-linecap="round"><path d="M9 5v14M15 5v14"/></svg></div>',
+ err:'<div class="arrow err"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ff4d66" stroke-width="2.4" stroke-linecap="round"><path d="M12 7v6M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg></div>'
+};
+function show(kind,lab,verdict,sub,reading,readTxt,withBtns){
+  var res=$('res');res.className='card res '+kind;res.style.display='block';
+  $('rlab').textContent=lab;$('ricon').innerHTML=ICON[kind==='ok'?'up':kind];
+  $('rverdict').innerHTML=verdict;$('rsub').innerHTML=sub;
+  var cs=$('candles');cs.innerHTML='';
+  (reading||[]).forEach(function(c,i){cs.appendChild(candleEl(c,i,i===reading.length-1))});
+  if(kind==='ok'){var nx=document.createElement('div');nx.className='next';nx.style.display='block';cs.appendChild(nx)}
+  cs.style.display=(reading&&reading.length)?'flex':'none';
+  $('rread').innerHTML=readTxt;
   $('rdemo').style.display=kind==='ok'?'block':'none';
-  $('wlrow').style.display=withButtons?'flex':'none';
-  res.scrollIntoView({behavior:'smooth',block:'center'});
+  $('wlbox').style.display=withBtns?'block':'none';
+  setTimeout(function(){res.scrollIntoView({behavior:'smooth',block:'start'})},60);
 }
-
+var NM={G:'أخضر',R:'أحمر'};
 function process(img){
-  var want=pat().length;
-  var out;
-  try{out=readCandles(img,want)}catch(e){out={ok:false,note:'خطأ في قراءة الصورة'}}
-  if(!out.ok){show('err','مش قادر أقرا الصورة بثقة',[],out.note+'<br>ابعت سكرين شوت أوضح وكامل، وآخر '+want+' شموع باينين. مفيش إشارة.',false);current=null;return}
+  var want=pat().length,out;
+  try{out=readCandles(img,want)}catch(e){out={ok:false,note:'حصل خطأ وانا بقرا الصورة'}}
+  if(!out.ok){current=null;show('err','CAN\u2019T READ','مش قادر أقرا الصورة بثقة','مفيش إشارة',[],out.note+'.<br>ابعت سكرين شوت أوضح وكامل، وآخر '+AR(want)+' شموع باينين.',false);return}
   var reading=out.colors,r=reading.join('');
-  var txt='قرأت: '+reading.map(function(c){return c==='G'?'أخضر':'أحمر'}).join(' ، ')+'<br>لو القراءة غلط، ابعت صورة أوضح.';
+  var rt='قرأت (من الأقدم للأحدث): '+reading.map(function(c){return NM[c]}).join(' · ')+'<br>لو القراءة غلط، ارفع صورة أوضح.';
   if(r===pat()){
     var id=Date.now();S.log.push({id:id,t:id,r:r,o:null});save(S);current=id;
-    show('ok','✅ SETUP MATCHED<br>CALL ⬆️ على الشمعة الجاية',reading,txt+'<br><b>لما الشمعة تقفل، دوس النتيجة:</b>',true);
+    show('ok','SETUP MATCHED','CALL','ادخل صعود على الشمعة الجاية',reading,rt,true);
   }else{
     current=null;
-    show('no','NO SETUP — استنى',reading,txt,false);
+    show('no','NO SETUP','WAIT','مفيش إشارة. استنى النمط يكمل',reading,rt,false);
   }
   render();
 }
 function finish(o){
   if(!current)return;
   S.log.forEach(function(e){if(e.id===current&&!e.o)e.o=o});save(S);
-  $('wlrow').style.display='none';
-  $('rtext').innerHTML='اتسجّلت: '+(o==='W'?'✅ كسب':'❌ خسارة')+'. ابعت الشارت الجاي لما يجهز.';
+  $('wlbox').style.display='none';
+  $('rread').innerHTML='اتسجّلت: <b style="color:'+(o==='W'?'#1fd58a':'#ff4d66')+'">'+(o==='W'?'كسب':'خسارة')+'</b>. ارفع الشارت الجاي لما يجهز.';
   current=null;render();
 }
-
 $('pick').onclick=function(){$('file').click()};
 $('file').onchange=function(ev){
   var f=ev.target.files&&ev.target.files[0];if(!f)return;
-  var url=URL.createObjectURL(f);var im=new Image();
+  var url=URL.createObjectURL(f),im=new Image();
   im.onload=function(){
-    var pv=$('preview');pv.src=url;pv.style.display='block';
+    $('preview').src=url;$('shot').style.display='block';$('scan').style.display='block';
     var W=im.naturalWidth,H=im.naturalHeight,sc=W>1400?1400/W:1;
     var c=document.createElement('canvas');c.width=Math.round(W*sc);c.height=Math.round(H*sc);
     var cx=c.getContext('2d',{willReadFrequently:true});cx.drawImage(im,0,0,c.width,c.height);
-    process(cx.getImageData(0,0,c.width,c.height));
+    var data=cx.getImageData(0,0,c.width,c.height);
+    setTimeout(function(){$('scan').style.display='none';process(data)},700);
     $('file').value='';
   };
-  im.onerror=function(){show('err','مش قادر أفتح الصورة',[],'جرب صورة تانية.',false)};
+  im.onerror=function(){show('err','ERROR','مش قادر أفتح الصورة','',[],'جرّب صورة تانية.',false)};
   im.src=url;
 };
 $('bwin').onclick=function(){finish('W')};
