@@ -5,7 +5,7 @@ Send a chart screenshot -> bot reads the last 5 candle colors -> applies PATTERN
 He taps WIN/LOSS under each signal; the bot logs it and keeps the real win rate.
 Env: TELEGRAM_TOKEN (required). Optional: PATTERN, RUN_SECONDS, DB.
 """
-import os, json, time, sqlite3, urllib.request, urllib.parse, tempfile
+import sys, os, json, time, sqlite3, urllib.request, urllib.parse, tempfile
 from datetime import datetime, timezone
 from chart_reader import read_candles
 
@@ -39,7 +39,7 @@ def say(text, markup=None):
     p = {"chat_id": chat, "text": text}
     if markup: p["reply_markup"] = json.dumps(markup)
     try: tg("sendMessage", **p)
-    except Exception as e: print("send fail", e)
+    except Exception as e: print("send fail", repr(e)[:200], flush=True)
 
 def stats():
     q = lambda o: db.execute("SELECT count(*) FROM signals WHERE outcome=?", (o,)).fetchone()[0]
@@ -115,17 +115,24 @@ def handle(msg):
 
 def main():
     off = int(kv_get("offset", 0)); t0 = time.time()
-    print("SHARK41 running, pattern", PATTERN)
+    print("SHARK41 starting, pattern", PATTERN, flush=True)
+    try:
+        me = tg("getMe")
+        print("bot ok: @%s" % me["result"].get("username"), flush=True)
+        tg("deleteWebhook")
+    except Exception as e:
+        print("getMe failed (bad token?):", repr(e)[:200], flush=True)
     while not (RUN_SECONDS and time.time() - t0 > RUN_SECONDS):
         try:
             for u in tg("getUpdates", offset=off, timeout=20).get("result", []):
                 off = u["update_id"] + 1; kv_set("offset", off)
+                print("update", u["update_id"], [k for k in u if k != "update_id"], flush=True)
                 try:
                     if "message" in u: handle(u["message"])
                     elif "callback_query" in u: handle_cb(u["callback_query"])
-                except Exception as e: print("handler fail", e)
+                except Exception as e: print("handler fail", repr(e)[:200], flush=True)
         except Exception as e:
-            print("poll fail", e); time.sleep(5)
+            print("poll fail", repr(e)[:200], flush=True); time.sleep(5)
 
 if __name__ == "__main__":
     main()
