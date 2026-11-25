@@ -21,6 +21,7 @@ jobs:
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           RUN_SECONDS: "3200"
+          PYTHONUNBUFFERED: "1"
         run: python shark41_bot.py
       - name: Save state
         if: always()
