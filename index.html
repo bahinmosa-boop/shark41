@@ -121,7 +121,7 @@ input[type=text]{width:100%;padding:13px;border-radius:12px;border:1px solid rgb
   <input type="file" id="file" accept="image/*">
   <div class="shot" id="shot"><img id="preview" alt=""><div class="scan" id="scan"></div></div>
   <div class="tip"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e6b94a" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
-  <div>صوّر الشارت <b>بعد ما الشمعة الخامسة تقفل</b>. لازم آخر ٥ شموع يبانوا كاملين على اليمين، من غير قص ولا تكبير.</div></div>
+  <div>صوّر الشارت <b>بعد ما الشمعة الخامسة تقفل</b>. لازم آخر ٦ شموع يبانوا على اليمين (الخامسة المقفولة + الشمعة الشغالة بعدها)، من غير قص ولا تكبير.</div></div>
 </section>
 
 <section class="card res" id="res">
@@ -165,6 +165,7 @@ input[type=text]{width:100%;padding:13px;border-radius:12px;border:1px solid rgb
     <summary>⚙︎ إعدادات</summary>
     <div class="read" style="margin-top:10px">النمط من الأقدم للأحدث (G = أخضر، R = أحمر). بعده الدخول CALL على الشمعة الجاية.</div>
     <input type="text" id="pat" maxlength="8" value="GGRGR">
+    <label class="read" style="display:flex;gap:10px;align-items:center;margin-top:14px"><input type="checkbox" id="live" style="width:20px;height:20px"> آخر شمعة على اليمين لسه شغالة (Quotex بتعرضها دايمًا). اتجاهلها واقرا اللي قبلها.</label>
     <button class="link" id="reset">مسح كل السجل</button>
   </details>
 </section>
@@ -178,39 +179,81 @@ input[type=text]{width:100%;padding:13px;border-radius:12px;border:1px solid rgb
  x.strokeStyle='#e6b94a';x.lineWidth=5;x.strokeRect(9,9,162,162);x.fillStyle='#f0c85a';x.font='900 66px -apple-system,Arial,sans-serif';x.textAlign='center';x.fillText('S41',90,112);
  document.getElementById('touchicon').href=c.toDataURL('image/png');})();
 
-// ---- chart reader: port of chart_reader.py ----
+// ---- chart reader v2: connected-component candle finder (works on portrait phone screenshots) ----
 function classify(r,g,b){
-  if(g-Math.max(r,b)>=40&&g>=110)return 1;   // green
+  if(g-Math.max(r,b)>=40&&g>=100)return 1;   // green
   if(r-Math.max(g,b)>=60&&r>=140)return 2;   // red
   return 0;
 }
 function median(a){var s=a.slice().sort(function(x,y){return x-y}),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2}
-// img: {data:Uint8ClampedArray RGBA, width, height}. returns {ok, colors:['G','R',...], note}
-function readCandles(img,want){
-  var w=img.width,h=img.height,d=img.data;
-  var g=new Array(w).fill(0),r=new Array(w).fill(0);
-  var y0=Math.floor(h*0.06),y1=Math.floor(h*0.94);
-  for(var x=0;x<w;x++){for(var y=y0;y<y1;y++){var i=(y*w+x)*4;var c=classify(d[i],d[i+1],d[i+2]);if(c===1)g[x]++;else if(c===2)r[x]++;}}
-  var colored=[];for(x=0;x<w;x++){var n=g[x]+r[x];colored.push(n>=2&&n<=0.6*h);}
-  var runs=[];x=0;
-  while(x<w){
-    if(colored[x]){var s=x;while(x<w&&colored[x])x++;
-      var gs=0,rs=0;for(var k=s;k<x;k++){gs+=g[k];rs+=r[k];}
-      runs.push({a:s,b:x-1,c:gs>rs?'G':'R',purity:Math.max(gs,rs)/Math.max(1,gs+rs)});
-    }else x++;
+// img: {data:RGBA, width, height}. want = candles in the pattern. live = true when the rightmost candle is the
+// still-forming one (Quotex always draws it): it is ignored and the pattern is read from the closed candles before it.
+function readCandles(img,want,live){
+  var w=img.width,h=img.height,d=img.data,N=w*h;
+  var mask=new Uint8Array(N);
+  for(var i=0;i<N;i++){mask[i]=classify(d[i*4],d[i*4+1],d[i*4+2])}
+  var seen=new Uint8Array(N),comps=[],stack=[];
+  for(var s=0;s<N;s++){
+    if(!mask[s]||seen[s])continue;
+    var col=mask[s],x0=w,x1=0,y0=h,y1=0,cnt=0;stack.length=0;stack.push(s);seen[s]=1;
+    var rows={};
+    while(stack.length){
+      var p=stack.pop(),px=p%w,py=(p-px)/w;cnt++;
+      if(px<x0)x0=px;if(px>x1)x1=px;if(py<y0)y0=py;if(py>y1)y1=py;
+      rows[py]=(rows[py]||0)+1;
+      for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){
+        if(!dx&&!dy)continue;var nx=px+dx,ny=py+dy;
+        if(nx<0||ny<0||nx>=w||ny>=h)continue;var q=ny*w+nx;
+        if(mask[q]===col&&!seen[q]){seen[q]=1;stack.push(q)}
+      }
+    }
+    if(cnt<6)continue;
+    var bw=0;for(var k in rows)if(rows[k]>bw)bw=rows[k];
+    comps.push({c:col===1?'G':'R',x0:x0,x1:x1,y0:y0,y1:y1,cx:(x0+x1)/2,bw:bw,hh:y1-y0+1,cnt:cnt});
   }
-  if(runs.length<want)return{ok:false,colors:[],note:'لقيت '+runs.length+' شموع بس'};
-  var med=median(runs.map(function(t){return t.b-t.a+1}));
-  var keep=runs.filter(function(t){var wd=t.b-t.a+1;return wd>=0.4*med&&wd<=2.2*med&&wd>=2});
-  if(keep.length<want)return{ok:false,colors:[],note:'شكل الشموع مش منتظم'};
-  var last=keep.slice(-want);
-  for(var j=0;j<last.length;j++)if(last[j].purity<0.85)return{ok:false,colors:[],note:'ألوان مختلطة جوه شمعة'};
-  var cen=last.map(function(t){return(t.a+t.b)/2}),gaps=[];
-  for(j=0;j<cen.length-1;j++)gaps.push(cen[j+1]-cen[j]);
+  // candle-like shapes: not tiny, not huge (buttons), taller than a speck
+  var cand=comps.filter(function(c){return c.bw>=3&&c.bw<=0.06*w&&c.hh>=4&&c.hh<=0.5*h&&(c.x1-c.x0+1)<=0.07*w});
+  var need=want+(live?1:0);
+  if(cand.length<3)return{ok:false,colors:[],note:'مالقيتش شموع كفاية في الصورة'};
+  // the chart's candles share one body width: find the biggest group of similar widths
+  var best=[];
+  cand.forEach(function(a){
+    var grp=cand.filter(function(b){return b.bw>=0.7*a.bw&&b.bw<=1.4*a.bw});
+    if(grp.length>best.length)best=grp;
+  });
+  if(best.length<3)return{ok:false,colors:[],note:'شكل الشموع مش واضح'};
+  var wStar=median(best.map(function(c){return c.bw}));
+  var yMed=median(best.map(function(c){return(c.y0+c.y1)/2}));
+  var singles=cand.filter(function(c){return c.bw>=0.55*wStar&&c.bw<=1.6*wStar&&Math.abs((c.y0+c.y1)/2-yMed)<=0.25*h});
+  singles.sort(function(a,b){return a.cx-b.cx});
+  var diffs=[];for(var q=0;q<singles.length-1;q++){var dd=singles[q+1].cx-singles[q].cx;if(dd>1)diffs.push(dd)}
+  diffs.sort(function(a,b){return a-b});
+  if(!diffs.length)return{ok:false,colors:[],note:'شكل الشموع مش واضح'};
+  var pitch=median(diffs.slice(0,Math.max(1,Math.ceil(diffs.length/2))));
+  // chart band from the single candles
+  var bandTop=Math.min.apply(null,singles.map(function(c){return c.y0})),bandBot=Math.max.apply(null,singles.map(function(c){return c.y1}));
+  var padv=0.05*h,all=singles.slice();
+  // adjacent same-colour candles can touch and merge into one blob: split them by the pitch
+  comps.forEach(function(c){
+    var wd=c.x1-c.x0+1;
+    if(wd>=1.6*wStar&&wd<=8*pitch&&c.hh>=4&&c.y0>=bandTop-padv&&c.y1<=bandBot+padv&&singles.indexOf(c)<0&&!(c.cnt/(wd*c.hh)>=0.9&&wd>0.8*c.hh)){
+      var k=Math.round((wd+pitch-wStar)/pitch);
+      if(k>=2&&k<=8){for(var m=0;m<k;m++){var cx=c.x0+wStar/2+m*(wd-wStar)/(k-1);all.push({c:c.c,cx:cx,y0:c.y0,y1:c.y1,bw:wStar})}}
+    }
+  });
+  all.sort(function(a,b){return a.cx-b.cx});
+  if(all.length<need)return{ok:false,colors:[],note:'مالقيتش شموع كفاية في الصورة'};
+  var last=all.slice(-need);
+  var gaps=[];for(var j=0;j<last.length-1;j++)gaps.push(last[j+1].cx-last[j].cx);
   var mg=median(gaps);
-  if(mg<2||gaps.some(function(gp){return Math.abs(gp-mg)>0.4*mg}))return{ok:false,colors:[],note:'المسافات بين الشموع مش منتظمة (الصورة مقصوصة أو مكبرة أو في حاجة فوقها)'};
-  if(last[last.length-1].b<0.4*w)return{ok:false,colors:[],note:'الشموع مش على اليمين'};
-  return{ok:true,colors:last.map(function(t){return t.c}),note:'ok'};
+  if(mg<2||gaps.some(function(g){return Math.abs(g-mg)>0.4*mg})||Math.abs(mg-pitch)>0.4*pitch)return{ok:false,colors:[],note:'المسافات بين الشموع مش منتظمة (الصورة مقصوصة أو مكبرة أو في حاجة فوق الشارت)'};
+  // all chosen candles should sit in the same chart band
+  var ys=last.map(function(c){return(c.y0+c.y1)/2}),band=Math.max.apply(null,ys)-Math.min.apply(null,ys);
+  if(band>0.4*h)return{ok:false,colors:[],note:'الشموع مش في نفس منطقة الشارت'};
+  var colors=last.map(function(c){return c.c});
+  var liveColor=live?colors[colors.length-1]:null;
+  if(live)colors=colors.slice(0,-1);
+  return{ok:true,colors:colors,live:liveColor,note:'ok'};
 }
 
 
@@ -218,7 +261,7 @@ function readCandles(img,want){
 var KEY='shark41_v1';
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{log:[],pat:'GGRGR'}}catch(e){return{log:[],pat:'GGRGR'}}}
 function save(s){try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
-var S=load();
+var S=load();if(S.live===undefined)S.live=true;
 var current=null;
 function $(id){return document.getElementById(id)}
 function pat(){var p=(S.pat||'GGRGR').toUpperCase().replace(/[^GR]/g,'');return p.length>=2?p:'GGRGR'}
@@ -240,7 +283,7 @@ function render(){
   sg.style.gridTemplateColumns='repeat(25,1fr)';
   $('verdict').textContent=n<50?'فاضل '+AR(50-n)+' صفقة لحد ما الرقم يبقى ليه معنى. قبل كده ده مجرد انطباع.':
     (pc>=0.65?'عدّيت ٥٠ صفقة وفوق ٦٥٪. الرقم مبدئي، كمّل ديمو وراجعه قبل أي فلوس حقيقية.':'عدّيت ٥٠ صفقة وتحت ٦٥٪. الأرقام قالت كلمتها.');
-  $('pat').value=pat();
+  $('pat').value=pat();$('live').checked=!!S.live;
   var ul=$('list');ul.innerHTML='';
   var items=S.log.slice(-8).reverse();
   items.forEach(function(e){
@@ -274,10 +317,10 @@ function show(kind,lab,verdict,sub,reading,readTxt,withBtns){
 var NM={G:'أخضر',R:'أحمر'};
 function process(img){
   var want=pat().length,out;
-  try{out=readCandles(img,want)}catch(e){out={ok:false,note:'حصل خطأ وانا بقرا الصورة'}}
-  if(!out.ok){current=null;show('err','CAN\u2019T READ','مش قادر أقرا الصورة بثقة','مفيش إشارة',[],out.note+'.<br>ابعت سكرين شوت أوضح وكامل، وآخر '+AR(want)+' شموع باينين.',false);return}
+  try{out=readCandles(img,want,S.live)}catch(e){out={ok:false,note:'حصل خطأ وانا بقرا الصورة'}}
+  if(!out.ok){current=null;show('err','تعذّرت القراءة','مش قادر أقرا الصورة بثقة','مفيش إشارة',[],out.note+'.<br>ابعت سكرين شوت أوضح وكامل، وآخر '+AR(want+(S.live?1:0))+' شموع باينين.',false);return}
   var reading=out.colors,r=reading.join('');
-  var rt='قرأت (من الأقدم للأحدث): '+reading.map(function(c){return NM[c]}).join(' · ')+'<br>لو القراءة غلط، ارفع صورة أوضح.';
+  var rt='قرأت الشموع المقفولة (من الأقدم للأحدث): '+reading.map(function(c){return NM[c]}).join(' · ')+(out.live?'<br>الشمعة الشغالة على اليمين ('+NM[out.live]+') اتجاهلت.':'')+'<br>لو القراءة غلط، ارفع صورة أوضح.';
   if(r===pat()){
     var id=Date.now();S.log.push({id:id,t:id,r:r,o:null});save(S);current=id;
     show('ok','SETUP MATCHED','CALL','ادخل صعود على الشمعة الجاية',reading,rt,true);
@@ -313,7 +356,8 @@ $('file').onchange=function(ev){
 $('bwin').onclick=function(){finish('W')};
 $('bloss').onclick=function(){finish('L')};
 $('pat').onchange=function(){S.pat=this.value.toUpperCase().replace(/[^GR]/g,'');save(S);render()};
-$('reset').onclick=function(){if(confirm('تمسح كل السجل؟')){S={log:[],pat:S.pat||'GGRGR'};save(S);render()}};
+$('live').onchange=function(){S.live=this.checked;save(S);render()};
+$('reset').onclick=function(){if(confirm('تمسح كل السجل؟')){S={log:[],pat:S.pat||'GGRGR',live:S.live};save(S);render()}};
 render();
 if(typeof module!=='undefined')module.exports={readCandles:readCandles};
 </script>
