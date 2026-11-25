@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SHARK41">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a1330">
+<title>SHARK41</title>
+<link rel="apple-touch-icon" id="touchicon" href="">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--navy:#0a1330;--navy2:#111d45;--gold:#e6b94a;--gold2:#f5d77e;--g:#19c37d;--r:#f0455a;--mut:#8f9bbd}
+html,body{margin:0;background:var(--navy);color:#fff;font-family:-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;min-height:100%}
+body{padding:env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom));max-width:520px;margin:0 auto}
+header{text-align:center;padding:22px 0 8px}
+.logo{font-size:34px;font-weight:900;letter-spacing:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo span{font-size:30px}
+.sub{color:var(--mut);font-size:13px;margin-top:2px}
+.demo{margin:12px 0;padding:8px 12px;border:1px solid var(--gold);border-radius:12px;color:var(--gold2);background:rgba(230,185,74,.08);text-align:center;font-size:13px;font-weight:700}
+.card{background:var(--navy2);border:1px solid rgba(230,185,74,.25);border-radius:20px;padding:18px;margin:14px 0}
+.btn{display:block;width:100%;border:0;border-radius:16px;padding:18px;font-size:19px;font-weight:800;color:#1a1300;background:linear-gradient(90deg,var(--gold),var(--gold2));cursor:pointer}
+.btn:active{transform:scale(.98)}
+input[type=file]{display:none}
+#preview{width:100%;max-height:230px;object-fit:contain;border-radius:12px;margin-top:12px;display:none;background:#000}
+.result{text-align:center;display:none}
+.result .big{font-size:30px;font-weight:900;margin:6px 0}
+.result.ok{border-color:var(--g);box-shadow:0 0 28px rgba(25,195,125,.25)}
+.result.ok .big{color:var(--g)}
+.result.no{border-color:#56608a}
+.result.no .big{color:#c9d1ee}
+.result.err{border-color:var(--r)}
+.result.err .big{color:var(--r);font-size:22px}
+.dots{display:flex;justify-content:center;gap:10px;margin:12px 0;direction:ltr}
+.dot{width:34px;height:34px;border-radius:50%}
+.dot.G{background:var(--g)}.dot.R{background:var(--r)}
+.small{font-size:13px;color:var(--mut);line-height:1.6}
+.row{display:flex;gap:12px;margin-top:14px}
+.wl{flex:1;border:0;border-radius:14px;padding:16px;font-size:18px;font-weight:800;color:#fff;cursor:pointer}
+.win{background:var(--g)}.loss{background:var(--r)}
+.stat{display:flex;justify-content:space-around;text-align:center}
+.stat b{display:block;font-size:28px;color:var(--gold2)}
+.bar{height:10px;border-radius:6px;background:#1c2a5c;margin-top:14px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));width:0}
+ul{list-style:none;padding:0;margin:8px 0 0}
+li{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1c2a5c;font-size:14px}
+.W{color:var(--g)}.L{color:var(--r)}.P{color:var(--mut)}
+details{margin-top:8px}summary{color:var(--gold);cursor:pointer;font-size:14px}
+input[type=text]{width:100%;padding:12px;border-radius:10px;border:1px solid #2a3a73;background:var(--navy);color:#fff;font-size:18px;letter-spacing:4px;text-align:center;direction:ltr;margin-top:8px}
+.link{background:none;border:0;color:var(--mut);text-decoration:underline;font-size:13px;cursor:pointer;margin-top:10px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🦈 SHARK<span>41</span></div>
+  <div class="sub">اختبار استراتيجية الشموع على الديمو</div>
+</header>
+
+<div class="demo">⚠️ ديمو فقط — غير مثبت لحد ٥٠ صفقة مسجّلة</div>
+
+<div class="card">
+  <button class="btn" id="pick">📷 اختار سكرين شوت الشارت</button>
+  <input type="file" id="file" accept="image/*">
+  <img id="preview" alt="">
+  <div class="small" style="margin-top:12px">صوّر الشارت <b>بعد ما الشمعة الخامسة تقفل</b> — آخر ٥ شموع لازم يبانوا كاملين على اليمين، من غير قص أو تكبير.</div>
+</div>
+
+<div class="card result" id="res">
+  <div class="big" id="rtitle"></div>
+  <div class="dots" id="dots"></div>
+  <div id="rtext" class="small"></div>
+  <div class="demo" id="rdemo" style="display:none">DEMO ONLY — unverified until 50 logged trades</div>
+  <div class="row" id="wlrow" style="display:none">
+    <button class="wl win" id="bwin">✅ كسبت</button>
+    <button class="wl loss" id="bloss">❌ خسرت</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="stat">
+    <div><b id="wr">—</b><span class="small">نسبة النجاح الحقيقية</span></div>
+    <div><b id="n">0/50</b><span class="small">صفقات مسجّلة</span></div>
+  </div>
+  <div class="bar"><i id="barfill"></i></div>
+  <div class="small" id="verdict" style="margin-top:10px"></div>
+</div>
+
+<div class="card">
+  <b style="color:var(--gold2)">آخر الإشارات</b>
+  <ul id="list"></ul>
+  <details>
+    <summary>إعدادات</summary>
+    <div class="small" style="margin-top:8px">النمط (G = أخضر، R = أحمر، من الأقدم للأحدث). بعده الدخول CALL/UP على الشمعة الجاية.</div>
+    <input type="text" id="pat" maxlength="8" value="GGRGR">
+    <button class="link" id="reset">مسح كل السجل</button>
+  </details>
+</div>
+<div class="small" style="text-align:center">كل حاجة بتتحسب على موبايلك. مفيش صور بتتبعت لأي مكان. نتيجة كل صفقة بتسجلها انت بإيدك.</div>
+
+<script>
+"use strict";
+// ---- icon for Add to Home Screen (drawn at load) ----
+(function(){var c=document.createElement('canvas');c.width=c.height=180;var x=c.getContext('2d');
+ x.fillStyle='#0a1330';x.fillRect(0,0,180,180);x.fillStyle='#e6b94a';x.font='bold 64px sans-serif';x.textAlign='center';x.fillText('S41',90,112);
+ x.strokeStyle='#e6b94a';x.lineWidth=6;x.strokeRect(10,10,160,160);document.getElementById('touchicon').href=c.toDataURL('image/png');})();
+
+// ---- chart reader: port of chart_reader.py ----
+function classify(r,g,b){
+  if(g-Math.max(r,b)>=40&&g>=110)return 1;   // green
+  if(r-Math.max(g,b)>=60&&r>=140)return 2;   // red
+  return 0;
+}
+function median(a){var s=a.slice().sort(function(x,y){return x-y}),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2}
+// img: {data:Uint8ClampedArray RGBA, width, height}. returns {ok, colors:['G','R',...], note}
+function readCandles(img,want){
+  var w=img.width,h=img.height,d=img.data;
+  var g=new Array(w).fill(0),r=new Array(w).fill(0);
+  var y0=Math.floor(h*0.06),y1=Math.floor(h*0.94);
+  for(var x=0;x<w;x++){for(var y=y0;y<y1;y++){var i=(y*w+x)*4;var c=classify(d[i],d[i+1],d[i+2]);if(c===1)g[x]++;else if(c===2)r[x]++;}}
+  var colored=[];for(x=0;x<w;x++){var n=g[x]+r[x];colored.push(n>=2&&n<=0.6*h);}
+  var runs=[];x=0;
+  while(x<w){
+    if(colored[x]){var s=x;while(x<w&&colored[x])x++;
+      var gs=0,rs=0;for(var k=s;k<x;k++){gs+=g[k];rs+=r[k];}
+      runs.push({a:s,b:x-1,c:gs>rs?'G':'R',purity:Math.max(gs,rs)/Math.max(1,gs+rs)});
+    }else x++;
+  }
+  if(runs.length<want)return{ok:false,colors:[],note:'لقيت '+runs.length+' شموع بس'};
+  var med=median(runs.map(function(t){return t.b-t.a+1}));
+  var keep=runs.filter(function(t){var wd=t.b-t.a+1;return wd>=0.4*med&&wd<=2.2*med&&wd>=2});
+  if(keep.length<want)return{ok:false,colors:[],note:'شكل الشموع مش منتظم'};
+  var last=keep.slice(-want);
+  for(var j=0;j<last.length;j++)if(last[j].purity<0.85)return{ok:false,colors:[],note:'ألوان مختلطة جوه شمعة'};
+  var cen=last.map(function(t){return(t.a+t.b)/2}),gaps=[];
+  for(j=0;j<cen.length-1;j++)gaps.push(cen[j+1]-cen[j]);
+  var mg=median(gaps);
+  if(mg<2||gaps.some(function(gp){return Math.abs(gp-mg)>0.4*mg}))return{ok:false,colors:[],note:'المسافات بين الشموع مش منتظمة (الصورة مقصوصة أو مكبرة أو في حاجة فوقها)'};
+  if(last[last.length-1].b<0.4*w)return{ok:false,colors:[],note:'الشموع مش على اليمين'};
+  return{ok:true,colors:last.map(function(t){return t.c}),note:'ok'};
+}
+
+// ---- storage ----
+var KEY='shark41_v1';
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{log:[],pat:'GGRGR'}}catch(e){return{log:[],pat:'GGRGR'}}}
+function save(s){localStorage.setItem(KEY,JSON.stringify(s))}
+var S=load();
+var current=null; // id of signal awaiting WIN/LOSS
+
+function $(id){return document.getElementById(id)}
+function pat(){var p=(S.pat||'GGRGR').toUpperCase().replace(/[^GR]/g,'');return p.length>=2?p:'GGRGR'}
+
+function render(){
+  var w=0,l=0;S.log.forEach(function(e){if(e.o==='W')w++;else if(e.o==='L')l++});
+  var n=w+l;
+  $('wr').textContent=n?(Math.round(1000*w/n)/10)+'%':'—';
+  $('n').textContent=n+'/50';
+  $('barfill').style.width=Math.min(100,n*2)+'%';
+  $('verdict').textContent=n<50?'لسه '+(50-n)+' صفقة لحد ما الرقم يتعتبر حقيقي. قبل كده ده مجرد حظ أو لا.':
+    (w/n>=0.65?'عدّيت ٥٠ صفقة وفوق ٦٥٪. الرقم ده مبدئي، كمّل ديمو وراجعه قبل أي فلوس حقيقية.':'عدّيت ٥٠ صفقة وتحت ٦٥٪. الأرقام قالت كلمتها.');
+  $('pat').value=pat();
+  var ul=$('list');ul.innerHTML='';
+  S.log.slice(-10).reverse().forEach(function(e){
+    var li=document.createElement('li');
+    var d=new Date(e.t);var ds=d.toLocaleString('ar-EG',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'numeric'});
+    li.innerHTML='<span>'+ds+' · '+e.r.split('').map(function(c){return c==='G'?'🟢':'🔴'}).join('')+'</span><span class="'+(e.o||'P')+'">'+(e.o==='W'?'كسب':e.o==='L'?'خسر':'مستني')+'</span>';
+    ul.appendChild(li);
+  });
+  if(!S.log.length)ul.innerHTML='<li><span class="small">لسه مفيش إشارات</span></li>';
+}
+
+function show(kind,title,reading,text,withButtons){
+  var res=$('res');res.className='card result '+kind;res.style.display='block';
+  $('rtitle').textContent=title;
+  var dots=$('dots');dots.innerHTML='';
+  (reading||[]).forEach(function(c){var d=document.createElement('div');d.className='dot '+c;dots.appendChild(d)});
+  $('rtext').innerHTML=text;
+  $('rdemo').style.display=kind==='ok'?'block':'none';
+  $('wlrow').style.display=withButtons?'flex':'none';
+  res.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function process(img){
+  var want=pat().length;
+  var out;
+  try{out=readCandles(img,want)}catch(e){out={ok:false,note:'خطأ في قراءة الصورة'}}
+  if(!out.ok){show('err','مش قادر أقرا الصورة بثقة',[],out.note+'<br>ابعت سكرين شوت أوضح وكامل، وآخر '+want+' شموع باينين. مفيش إشارة.',false);current=null;return}
+  var reading=out.colors,r=reading.join('');
+  var txt='قرأت: '+reading.map(function(c){return c==='G'?'أخضر':'أحمر'}).join(' ، ')+'<br>لو القراءة غلط، ابعت صورة أوضح.';
+  if(r===pat()){
+    var id=Date.now();S.log.push({id:id,t:id,r:r,o:null});save(S);current=id;
+    show('ok','✅ SETUP MATCHED<br>CALL ⬆️ على الشمعة الجاية',reading,txt+'<br><b>لما الشمعة تقفل، دوس النتيجة:</b>',true);
+  }else{
+    current=null;
+    show('no','NO SETUP — استنى',reading,txt,false);
+  }
+  render();
+}
+function finish(o){
+  if(!current)return;
+  S.log.forEach(function(e){if(e.id===current&&!e.o)e.o=o});save(S);
+  $('wlrow').style.display='none';
+  $('rtext').innerHTML='اتسجّلت: '+(o==='W'?'✅ كسب':'❌ خسارة')+'. ابعت الشارت الجاي لما يجهز.';
+  current=null;render();
+}
+
+$('pick').onclick=function(){$('file').click()};
+$('file').onchange=function(ev){
+  var f=ev.target.files&&ev.target.files[0];if(!f)return;
+  var url=URL.createObjectURL(f);var im=new Image();
+  im.onload=function(){
+    var pv=$('preview');pv.src=url;pv.style.display='block';
+    var W=im.naturalWidth,H=im.naturalHeight,sc=W>1400?1400/W:1;
+    var c=document.createElement('canvas');c.width=Math.round(W*sc);c.height=Math.round(H*sc);
+    var cx=c.getContext('2d',{willReadFrequently:true});cx.drawImage(im,0,0,c.width,c.height);
+    process(cx.getImageData(0,0,c.width,c.height));
+    $('file').value='';
+  };
+  im.onerror=function(){show('err','مش قادر أفتح الصورة',[],'جرب صورة تانية.',false)};
+  im.src=url;
+};
+$('bwin').onclick=function(){finish('W')};
+$('bloss').onclick=function(){finish('L')};
+$('pat').onchange=function(){S.pat=this.value.toUpperCase().replace(/[^GR]/g,'');save(S);render()};
+$('reset').onclick=function(){if(confirm('تمسح كل السجل؟')){S={log:[],pat:S.pat||'GGRGR'};save(S);render()}};
+render();
+if(typeof module!=='undefined')module.exports={readCandles:readCandles};
+</script>
+</body>
+</html>
