@@ -121,7 +121,7 @@ input[type=text]{width:100%;padding:13px;border-radius:12px;border:1px solid rgb
   <input type="file" id="file" accept="image/*">
   <div class="shot" id="shot"><img id="preview" alt=""><div class="scan" id="scan"></div></div>
   <div class="tip"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e6b94a" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
-  <div>صوّر الشارت <b>بعد ما الشمعة الخامسة تقفل</b>. لازم آخر ٦ شموع يبانوا على اليمين (الخامسة المقفولة + الشمعة الشغالة بعدها)، من غير قص ولا تكبير.</div></div>
+  <div>صوّر الشارت <b>بعد ما الشمعة الخامسة تقفل</b>. تأكد إن على الأقل ٦ شموع باينين حوالين الخط المنقط (٥ مقفولين + الشمعة الشغالة)، لأن كويتكس بيسيب مساحة فاضية على اليمين. من غير قص ولا تكبير.</div></div>
 </section>
 
 <section class="card res" id="res">
@@ -212,7 +212,7 @@ function readCandles(img,want,live){
     comps.push({c:col===1?'G':'R',x0:x0,x1:x1,y0:y0,y1:y1,cx:(x0+x1)/2,bw:bw,hh:y1-y0+1,cnt:cnt});
   }
   // candle-like shapes: not tiny, not huge (buttons), taller than a speck
-  var cand=comps.filter(function(c){return c.bw>=3&&c.bw<=0.06*w&&c.hh>=4&&c.hh<=0.5*h&&(c.x1-c.x0+1)<=0.07*w});
+  var cand=comps.filter(function(c){return c.x0>1&&c.bw>=3&&c.bw<=0.06*w&&c.hh>=4&&c.hh<=0.5*h&&(c.x1-c.x0+1)<=0.07*w});
   var need=want+(live?1:0);
   if(cand.length<3)return{ok:false,colors:[],note:'مالقيتش شموع كفاية في الصورة'};
   // the chart's candles share one body width: find the biggest group of similar widths
@@ -238,10 +238,12 @@ function readCandles(img,want,live){
     var wd=c.x1-c.x0+1;
     if(wd>=1.6*wStar&&wd<=8*pitch&&c.hh>=4&&c.y0>=bandTop-padv&&c.y1<=bandBot+padv&&singles.indexOf(c)<0&&!(c.cnt/(wd*c.hh)>=0.9&&wd>0.8*c.hh)){
       var k=Math.round((wd+pitch-wStar)/pitch);
-      if(k>=2&&k<=8){for(var m=0;m<k;m++){var cx=c.x0+wStar/2+m*(wd-wStar)/(k-1);all.push({c:c.c,cx:cx,y0:c.y0,y1:c.y1,bw:wStar})}}
+      if(k>=2&&k<=8){for(var m=0;m<k;m++){var cx=c.x0+wStar/2+m*(wd-wStar)/(k-1);all.push({c:c.c,cx:cx,y0:c.y0,y1:c.y1,bw:wStar,cnt:0})}}
     }
   });
   all.sort(function(a,b){return a.cx-b.cx});
+  var dd2=[];all.forEach(function(c){var p=dd2[dd2.length-1];if(p&&c.cx-p.cx<0.6*pitch){if((c.cnt||0)>(p.cnt||0))dd2[dd2.length-1]=c}else dd2.push(c)});
+  all=dd2;
   if(all.length<need)return{ok:false,colors:[],note:'مالقيتش شموع كفاية في الصورة'};
   var last=all.slice(-need);
   var gaps=[];for(var j=0;j<last.length-1;j++)gaps.push(last[j+1].cx-last[j].cx);
